@@ -26,4 +26,28 @@ button:hover {
     pointer-events: none; 
     z-index: 10;
 }
+/* Keep your button and button:hover rules exactly as you have them, then add this at the bottom: */
+
+.button-container {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.cam-container { 
+    position: relative; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+    width: 640px;
+}
+
+.overlay-glasses { 
+    position: absolute; 
+    top: 25%;           /* Change this % to move the GD cube higher or lower on your face */
+    left: 35%;          /* Change this % to move the cube left or right */
+    width: 30%;         /* Adjusts how big the GD cube appears over the camera video */
+    pointer-events: none; 
+    z-index: 10;
+}
 
