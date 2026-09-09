@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Hardest Levels</title>
-    <!-- Imports the absolute bulletproof face tracking framework -->
-    <script src="https://jsdelivr.net"></script>
-    <script src="https://jsdelivr.net"></script>
-    <script src="https://jsdelivr.net"></script>
-    <script src="https://jsdelivr.net"></script>
+    
+    <!-- Verified Google MediaPipe Tracking Framework Files -->
+    <script src="https://jsdelivr.net" crossorigin="anonymous"></script>
+    <script src="https://jsdelivr.net" crossorigin="anonymous"></script>
+
     <style>
         body {
             background-color: #111;
@@ -59,15 +59,15 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transform: scaleX(-1); /* Mirrors the webcam feed so it looks normal */
+            transform: scaleX(-1); /* Mirrors the screen to match standard webcam views */
         }
         .overlay-glasses { 
             position: absolute; 
-            width: 150px;           
-            height: 150px;
+            width: 120px;           
+            height: 120px;
             pointer-events: none; 
             z-index: 9999;      
-            transform: translate(-50%, -50%); /* Keeps character centered directly on your nose tracking point */
+            transform: translate(-50%, -50%); /* Locks center coordinates to the track point */
             display: none;
         }
     </style>
@@ -77,63 +77,51 @@
     <h1 style="margin-bottom: 20px;">My Hardest Levels</h1>
 
     <div class="button-container">
-        <a href="https://gdladder.com" target="_blank"><button>Troll madness</button></a>
-        <a href="https://gdladder.com" target="_blank"><button>Nine Circles</button></a>
+        <a href="https://gdladder.com/level/114532158" target="_blank"><button>Troll madness</button></a>
+        <a href="https://gdladder.com/level/4284013" target="_blank"><button>Nine Circles</button></a>
         <a href="https://gdladder.com" target="_blank"><button>Crazy</button></a>
         <a href="https://gdladder.com" target="_blank"><button>Future Funk</button></a>
-        <a href="https://gdladder.com" target="_blank"><button>Acropolis</button></a>
+        <a href="https://gdladder.com/level/5155022" target="_blank"><button>Acropolis</button></a>
     </div>
 
     <div class="cam-container">
-        <video id="v" autoplay playsinline width="640" height="480"></video>
+        <video id="v" playsinline width="640" height="480"></video>
         <img id="cube" class="overlay-glasses" src="Geometry_Dash-removebg-preview.png" alt="GD Character Face">
     </div>
 
     <script>
-        const video = document.getElementById('v');
+        const videoElement = document.getElementById('v');
         const cube = document.getElementById('cube');
-        let model;
 
-        async function setupCamera() {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
-            video.srcObject = stream;
-            return new Promise((resolve) => {
-                video.onloadedmetadata = () => { resolve(video); };
-            });
-        }
+        const faceMesh = new FaceMesh({
+            locateFile: (file) => `https://jsdelivr.net{file}`
+        });
 
-        async function main() {
-            await setupCamera();
-            video.play();
+        faceMesh.setOptions({
+            maxNumFaces: 1,
+            refineLandmarks: true,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
 
-            // Load the official Google MediaPipe Face Detection engine model
-            model = await faceLandmarksDetection.load(
-                faceLandmarksDetection.SupportedPackages.mediapipeFacemesh,
-                { maxFaces: 1 }
-            );
-
-            trackFace();
-        }
-
-        async function trackFace() {
-            const predictions = await model.estimateFaces({ input: video });
-
-            if (predictions.length > 0) {
-                // Target landmark point 4 is the exact center tip of your nose
-                const nose = predictions[0].annotations.noseTip[0];
+        faceMesh.onResults((results) => {
+            if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+                const landmarks = results.multiFaceLandmarks[0];
                 
-                // Get your face borders to calculate tracking scale distances
-                const topLeft = predictions[0].boundingBox.topLeft;
-                const bottomRight = predictions[0].boundingBox.bottomRight;
-                const faceWidth = bottomRight[0] - topLeft[0];
+                // Point 168 is the absolute center of your face right between your eyes
+                const noseBridge = landmarks[168]; 
+                
+                // Track your forehead and chin to measure depth scale dynamically
+                const forehead = landmarks[10];
+                const chin = landmarks[152];
+                const faceHeight = Math.abs(chin.y - forehead.y) * 480;
 
-                // Map coordinates cleanly to the absolute canvas layout
-                // (Using 640 - nose[0] compensates perfectly for the mirrored camera effect)
-                const xPos = 640 - nose[0];
-                const yPos = nose[1];
+                // Map coordinates cleanly onto our 640x480 container grid
+                const xPos = noseBridge.x * 640;
+                const yPos = noseBridge.y * 480;
 
-                // Dynamically scale the size of the cube based on how close you sit to the camera
-                const dynamicSize = faceWidth * 1.2;
+                // Scale the Geometry Dash cube size depending on how close your head moves
+                const dynamicSize = faceHeight * 1.3;
 
                 cube.style.left = `${xPos}px`;
                 cube.style.top = `${yPos}px`;
@@ -143,12 +131,17 @@
             } else {
                 cube.style.display = 'none';
             }
+        });
 
-            // Loop smoothly at 60 frames per second
-            requestAnimationFrame(trackFace);
-        }
-
-        main();
+        const camera = new Camera(videoElement, {
+            onFrame: async () => {
+                await faceMesh.send({ image: videoElement });
+            },
+            width: 640,
+            height: 480
+        });
+        
+        camera.start();
     </script>
 
 </body>
