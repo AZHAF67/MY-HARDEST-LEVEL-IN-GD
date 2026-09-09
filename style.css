@@ -1,0 +1,29 @@
+
+body {
+  background-color: black;
+}
+button {  
+    font-family: 'Courier New', Courier, monospace;
+    transition: 0.3s; /* recommended for smooth hover */
+    background: linear-gradient(150deg, cyan, lightblue);
+    color: aliceblue;
+    border-radius: 50%;
+    width: 100px;
+    height: 100px;
+}
+
+button:hover {
+    transform: scale(1.5);
+    box-shadow: 0 5px 20px aliceblue;
+    background: linear-gradient(150deg, lightblue, cyan);
+    color:black;
+}
+.overlay-glasses { 
+    position: absolute; 
+    top: 30%;          /* Move UP or DOWN (Lower % moves it up, higher % moves it down) */
+    left: 25%;         /* Move LEFT or RIGHT (Lower % moves it left, higher % moves it right) */
+    width: 50%;        /* Make BIGGER or SMALLER (Change the size percentage) */
+    pointer-events: none; 
+    z-index: 10;
+}
+
