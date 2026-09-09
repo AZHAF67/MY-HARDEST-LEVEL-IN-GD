@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Hardest Levels</title>
+    <style>
+        body {
+            background-color: #111;
+            color: aliceblue;
+            font-family: 'Courier New', Courier, monospace;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+        button {
+            font-family: 'Courier New', Courier, monospace;
+            transition: 0.3s;
+            background: linear-gradient(150deg, cyan, lightblue);
+            color: #111;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 20px aliceblue;
+            background: linear-gradient(150deg, lightblue, cyan);
+            color: black;
+        }
+        .cam-container { 
+            position: relative; 
+            display: inline-block;
+            margin: 0 auto;
+            width: 640px;
+            height: 480px;
+            border: 4px solid #333;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #000;
+        }
+        video {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .overlay-glasses { 
+            position: absolute; 
+            top: 25%;           
+            left: 35%;          
+            width: 30%;         
+            height: auto;
+            pointer-events: none; 
+            z-index: 9999;      
+        }
+    </style>
+</head>
+<body>
+
+    <h1 style="margin-bottom: 20px;">My Hardest Levels</h1>
+
+    <div class="button-container">
+        <a href="https://gdladder.com/level/114532158" target="_blank"><button>Troll madness</button></a>
+        <a href="https://gdladder.com/level/4284013" target="_blank"><button>Nine Circles</button></a>
+        <a href="https://gdladder.com" target="_blank"><button>Crazy</button></a>
+        <a href="https://gdladder.com" target="_blank"><button>Future Funk</button></a>
+        <a href="https://gdladder.com/level/5155022" target="_blank"><button>Acropolis</button></a>
+    </div>
+
+    <div class="cam-container">
+        <video id="v" autoplay playsinline width="640" height="480"></video>
+        <img class="overlay-glasses" src="Geometry_Dash-removebg-preview.png" alt="GD Character Face">
+    </div>
+
+    <script>
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(s => { document.getElementById('v').srcObject = s; })
+            .catch(e => { console.error(e); });
+    </script>
+
+</body>
+</html>
