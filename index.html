@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Hardest Levels</title>
-    <!-- 1. Download the Face Tracking library engine -->
+    <!-- Imports the absolute bulletproof face tracking framework -->
+    <script src="https://jsdelivr.net"></script>
+    <script src="https://jsdelivr.net"></script>
+    <script src="https://jsdelivr.net"></script>
     <script src="https://jsdelivr.net"></script>
     <style>
         body {
@@ -40,7 +43,6 @@
             background: linear-gradient(150deg, lightblue, cyan);
             color: black;
         }
-        /* The container for the tracking window */
         .cam-container { 
             position: relative; 
             display: inline-block;
@@ -52,21 +54,21 @@
             overflow: hidden;
             background: #000;
         }
-        /* The live tracking canvas element */
-        canvas {
+        video {
             display: block;
             width: 100%;
             height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1); /* Mirrors the webcam feed so it looks normal */
         }
-        /* The GD Cube Mask that will move dynamically */
         .overlay-glasses { 
             position: absolute; 
-            width: 120px; /* Size of the cube */
-            height: 120px;
+            width: 150px;           
+            height: 150px;
             pointer-events: none; 
-            z-index: 9999;
-            transform: translate(-50%, -50%); /* Centers tracking coordinates */
-            display: none; /* Hidden until a face is found */
+            z-index: 9999;      
+            transform: translate(-50%, -50%); /* Keeps character centered directly on your nose tracking point */
+            display: none;
         }
     </style>
 </head>
@@ -83,47 +85,70 @@
     </div>
 
     <div class="cam-container">
-        <!-- The library uses a canvas element instead of a raw video tag to process tracking -->
-        <canvas id='jeeFaceFilterCanvas'></canvas>
+        <video id="v" autoplay playsinline width="640" height="480"></video>
         <img id="cube" class="overlay-glasses" src="Geometry_Dash-removebg-preview.png" alt="GD Character Face">
     </div>
 
     <script>
+        const video = document.getElementById('v');
         const cube = document.getElementById('cube');
-        const container = document.querySelector('.cam-container');
+        let model;
 
-        // Initialize the face tracking engine
-        JEELIZFACEFILTER.init({
-            canvasId: 'jeeFaceFilterCanvas',
-            NNCPath: 'https://jsdelivr.net', // Neural network pathway
-            callbackReady: function(errCode, spec) {
-                if (errCode) {
-                    console.log('Tracking initialization failed', errCode);
-                    return;
-                }
-                console.log('Tracking engine ready!');
-            },
-            // This function runs continuously on every single video frame
-            callbackTrack: function(detectState) {
-                // Check if a face is clearly visible in the camera
-                if (detectState.detected > 0.6) {
-                    // Get face coordinates scaled to the canvas box dimensions
-                    const x = (0.5 + detectState.x) * 640;
-                    const y = (0.5 - detectState.y) * 480;
-                    const scale = detectState.s * 350; // Scales size based on distance
+        async function setupCamera() {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+            video.srcObject = stream;
+            return new Promise((resolve) => {
+                video.onloadedmetadata = () => { resolve(video); };
+            });
+        }
 
-                    // Instantly shift the cube location to match your face
-                    cube.style.left = x + 'px';
-                    cube.style.top = y + 'px';
-                    cube.style.width = scale + 'px';
-                    cube.style.height = scale + 'px';
-                    cube.style.display = 'block';
-                } else {
-                    // Hide the cube if you step away from the camera frame
-                    cube.style.display = 'none';
-                }
+        async function main() {
+            await setupCamera();
+            video.play();
+
+            // Load the official Google MediaPipe Face Detection engine model
+            model = await faceLandmarksDetection.load(
+                faceLandmarksDetection.SupportedPackages.mediapipeFacemesh,
+                { maxFaces: 1 }
+            );
+
+            trackFace();
+        }
+
+        async function trackFace() {
+            const predictions = await model.estimateFaces({ input: video });
+
+            if (predictions.length > 0) {
+                // Target landmark point 4 is the exact center tip of your nose
+                const nose = predictions[0].annotations.noseTip[0];
+                
+                // Get your face borders to calculate tracking scale distances
+                const topLeft = predictions[0].boundingBox.topLeft;
+                const bottomRight = predictions[0].boundingBox.bottomRight;
+                const faceWidth = bottomRight[0] - topLeft[0];
+
+                // Map coordinates cleanly to the absolute canvas layout
+                // (Using 640 - nose[0] compensates perfectly for the mirrored camera effect)
+                const xPos = 640 - nose[0];
+                const yPos = nose[1];
+
+                // Dynamically scale the size of the cube based on how close you sit to the camera
+                const dynamicSize = faceWidth * 1.2;
+
+                cube.style.left = `${xPos}px`;
+                cube.style.top = `${yPos}px`;
+                cube.style.width = `${dynamicSize}px`;
+                cube.style.height = `${dynamicSize}px`;
+                cube.style.display = 'block';
+            } else {
+                cube.style.display = 'none';
             }
-        });
+
+            // Loop smoothly at 60 frames per second
+            requestAnimationFrame(trackFace);
+        }
+
+        main();
     </script>
 
 </body>
