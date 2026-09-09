@@ -1,53 +1,74 @@
-
+/* Base Canvas Setup */
 body {
-  background-color: black;
-}
-button {  
-    font-family: 'Courier New', Courier, monospace;
-    transition: 0.3s; /* recommended for smooth hover */
-    background: linear-gradient(150deg, cyan, lightblue);
+    background-color: #111;
     color: aliceblue;
-    border-radius: 50%;
-    width: 100px;
-    height: 100px;
-}
-
-button:hover {
-    transform: scale(1.5);
-    box-shadow: 0 5px 20px aliceblue;
-    background: linear-gradient(150deg, lightblue, cyan);
-    color:black;
-}
-.overlay-glasses { 
-    position: absolute; 
-    top: 30%;          /* Move UP or DOWN (Lower % moves it up, higher % moves it down) */
-    left: 25%;         /* Move LEFT or RIGHT (Lower % moves it left, higher % moves it right) */
-    width: 50%;        /* Make BIGGER or SMALLER (Change the size percentage) */
-    pointer-events: none; 
-    z-index: 10;
-}
-/* Keep your button and button:hover rules exactly as you have them, then add this at the bottom: */
-
-.button-container {
+    font-family: 'Courier New', Courier, monospace;
     text-align: center;
+    margin: 0;
+    padding: 20px;
+}
+
+.main-title {
     margin-bottom: 20px;
 }
 
-.cam-container { 
-    position: relative; 
+/* Button Navigation Layout styling */
+.button-container {
     display: flex;
     justify-content: center;
-    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+}
+
+/* Base Level Selection Buttons Styling */
+button {
+    font-family: 'Courier New', Courier, monospace;
+    transition: 0.3s; /* recommended for smooth hover */
+    background: linear-gradient(150deg, cyan, lightblue);
+    color: #111;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 5px 20px aliceblue;
+    background: linear-gradient(150deg, lightblue, cyan);
+    color: black;
+}
+
+/* Camera Video Container Framework */
+.cam-container { 
+    position: relative; 
+    display: inline-block;
     margin: 0 auto;
     width: 640px;
+    height: 480px;
+    border: 4px solid #333;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #000;
 }
 
+video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* The Geometry Dash Mask Placement */
 .overlay-glasses { 
     position: absolute; 
-    top: 25%;           /* Change this % to move the GD cube higher or lower on your face */
-    left: 35%;          /* Change this % to move the cube left or right */
-    width: 30%;         /* Adjusts how big the GD cube appears over the camera video */
+    top: 25%;           /* Adjust this % to shift the GD cube up or down */
+    left: 35%;          /* Adjust this % to shift the GD cube left or right */
+    width: 30%;         /* Adjust this % to make the GD cube bigger or smaller */
+    height: auto;
     pointer-events: none; 
-    z-index: 10;
+    z-index: 9999;      /* Forces the image to render completely on top of the live video stream */
 }
-
