@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Hardest Levels</title>
     
-    <!-- Verified Google MediaPipe Tracking Framework Files -->
-    <script src="https://jsdelivr.net" crossorigin="anonymous"></script>
-    <script src="https://jsdelivr.net" crossorigin="anonymous"></script>
+    <!-- Ultra Lightweight 60 FPS Face Tracker -->
+    <script src="https://cloudflare.com"></script>
+    <script src="https://cloudflare.com"></script>
 
     <style>
         body {
@@ -59,15 +59,12 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transform: scaleX(-1); /* Mirrors the screen to match standard webcam views */
+            transform: scaleX(-1); /* Mirrors webcam view */
         }
         .overlay-glasses { 
             position: absolute; 
-            width: 120px;           
-            height: 120px;
             pointer-events: none; 
             z-index: 9999;      
-            transform: translate(-50%, -50%); /* Locks center coordinates to the track point */
             display: none;
         }
     </style>
@@ -77,71 +74,49 @@
     <h1 style="margin-bottom: 20px;">My Hardest Levels</h1>
 
     <div class="button-container">
-        <a href="https://gdladder.com/level/114532158" target="_blank"><button>Troll madness</button></a>
-        <a href="https://gdladder.com/level/4284013" target="_blank"><button>Nine Circles</button></a>
+        <a href="https://gdladder.com" target="_blank"><button>Troll madness</button></a>
+        <a href="https://gdladder.com" target="_blank"><button>Nine Circles</button></a>
         <a href="https://gdladder.com" target="_blank"><button>Crazy</button></a>
         <a href="https://gdladder.com" target="_blank"><button>Future Funk</button></a>
-        <a href="https://gdladder.com/level/5155022" target="_blank"><button>Acropolis</button></a>
+        <a href="https://gdladder.com" target="_blank"><button>Acropolis</button></a>
     </div>
 
     <div class="cam-container">
-        <video id="v" playsinline width="640" height="480"></video>
+        <video id="v" preload autoplay loop muted width="640" height="480"></video>
         <img id="cube" class="overlay-glasses" src="Geometry_Dash-removebg-preview.png" alt="GD Character Face">
     </div>
 
     <script>
-        const videoElement = document.getElementById('v');
+        const video = document.getElementById('v');
         const cube = document.getElementById('cube');
 
-        const faceMesh = new FaceMesh({
-            locateFile: (file) => `https://jsdelivr.net{file}`
-        });
+        // Setup the lightweight face scanner
+        const tracker = new tracking.ObjectTracker('face');
+        tracker.setInitialScale(4);
+        tracker.setStepSize(2);
+        tracker.setEdgesDensity(0.1);
 
-        faceMesh.setOptions({
-            maxNumFaces: 1,
-            refineLandmarks: true,
-            minDetectionConfidence: 0.5,
-            minTrackingConfidence: 0.5
-        });
+        // Turn on tracking loop
+        tracking.track('#v', tracker, { camera: true });
 
-        faceMesh.onResults((results) => {
-            if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
-                const landmarks = results.multiFaceLandmarks[0];
-                
-                // Point 168 is the absolute center of your face right between your eyes
-                const noseBridge = landmarks[168]; 
-                
-                // Track your forehead and chin to measure depth scale dynamically
-                const forehead = landmarks[10];
-                const chin = landmarks[152];
-                const faceHeight = Math.abs(chin.y - forehead.y) * 480;
-
-                // Map coordinates cleanly onto our 640x480 container grid
-                const xPos = noseBridge.x * 640;
-                const yPos = noseBridge.y * 480;
-
-                // Scale the Geometry Dash cube size depending on how close your head moves
-                const dynamicSize = faceHeight * 1.3;
-
-                cube.style.left = `${xPos}px`;
-                cube.style.top = `${yPos}px`;
-                cube.style.width = `${dynamicSize}px`;
-                cube.style.height = `${dynamicSize}px`;
-                cube.style.display = 'block';
-            } else {
+        // Runs instantly when your face moves
+        tracker.on('track', function(event) {
+            if (event.data.length === 0) {
                 cube.style.display = 'none';
+            } else {
+                event.data.forEach(function(rect) {
+                    // Calculate perfectly mirrored left placement alignment
+                    const mirroredLeft = 640 - rect.x - rect.width;
+
+                    // Instantly lock cube dimensions over your face box layout
+                    cube.style.left = mirroredLeft + 'px';
+                    cube.style.top = (rect.y - 20) + 'px'; // Adjusted slightly up to sit on head better
+                    cube.style.width = rect.width + 'px';
+                    cube.style.height = rect.height + 'px';
+                    cube.style.display = 'block';
+                });
             }
         });
-
-        const camera = new Camera(videoElement, {
-            onFrame: async () => {
-                await faceMesh.send({ image: videoElement });
-            },
-            width: 640,
-            height: 480
-        });
-        
-        camera.start();
     </script>
 
 </body>
